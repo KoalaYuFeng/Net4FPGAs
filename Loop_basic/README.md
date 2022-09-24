@@ -8,9 +8,10 @@ mkdir build && cd build && cmake .. && make
 ```sh
 cp -r bin/ lib/ <FPGA machine>
 ```
-* Step 3: run rx and tx in bin/ folder respectively.
+* Step 3: run basic and loop in bin/ folder respectively.
 ```sh
-./tx ../../../basic.intf1.xilinx_u250_gen3x16_xdma_3_1_202020_1/vnx_basic_if1.xclbin 0 m.data // in Client FPGA
-./rx ../../../basic.intf1.xilinx_u250_gen3x16_xdma_3_1_202020_1/vnx_basic_if1.xclbin 0 // in Server FPGA
+./basic ../../../basic.intf1.xilinx_u250_gen3x16_xdma_3_1_202020_1/vnx_basic_if1.xclbin 0 // in Server FPGA
+./loop ../../../loop.intf1.xilinx_u250_gen3x16_xdma_3_1_202020_1/vnx_loop_if1.xclbin 0 // in Client FPGA
 ```
-Note that the size of m.data file in Client side must be multiple of 64 byte.
+Note that when running this code the first time, it may lose the first data packet. Just add a initial script to check the datapath is ok.
+For example, I usually run Rtt_tx.py and Rtt_rx.py to check whether the datapath is OK.
