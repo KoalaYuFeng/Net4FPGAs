@@ -790,8 +790,12 @@ class TrafficGenerator(DefaultIP):
             tot_cycles = int(self.register_map.out_traffic_cycles)
             tot_pkts = int(self.register_map.out_traffic_packets)
 
-        tot_time = (1 / (self.freq * 10 ** 6)) * tot_cycles
-        thr_bs = (tot_bytes * 8) / tot_time
+        if tot_cycles != 0 :
+            tot_time = (1 / (self.freq * 10 ** 6)) * tot_cycles
+            thr_bs = (tot_bytes * 8) / tot_time
+        else:
+            thr_bs = 0
+            tot_time = 0
 
         return tot_pkts, thr_bs / (10 ** 9), tot_time
 

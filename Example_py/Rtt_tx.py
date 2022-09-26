@@ -6,6 +6,7 @@ from _thread import *
 import threading 
 import socket
 from vnx_utils import *
+import time
 
 
 for i in range(len(pynq.Device.devices)):
@@ -20,12 +21,18 @@ ol = pynq.Overlay(xclbin,device=currentDevice)
 ## print("Link interface 0 {}; link interface 1 {}".format(ol.cmac_0.link_status(),ol.cmac_1.link_status()))
 print("Link interface 1 {}".format(ol.cmac_1.link_status()))
 
-print(ol.networklayer_1.set_ip_address('10.1.212.165', debug=True)) ## own ip address
+print(ol.networklayer_1.set_ip_address('192.168.0.202', debug=True)) ## own ip address
 
-ol.networklayer_1.sockets[2] = ('10.1.212.167', 60512, 62177, True)
+ol.networklayer_1.sockets[2] = ('192.168.0.201', 60512, 62177, True)
 ol.networklayer_1.populate_socket_table()
 print(ol.networklayer_1.get_socket_table())
-ol.networklayer_1.arp_discovery()
+
+while (len(ol.networklayer_1.get_arp_table()) == 0):
+    print("arp table is not ready ! ")
+    ol.networklayer_1.arp_discovery()
+    time.sleep(1)
+
+print("find arp table ---- ")
 print(ol.networklayer_1.get_arp_table())
 
 send_packets   = 2 ** 20

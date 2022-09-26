@@ -21,12 +21,24 @@ ol = pynq.Overlay(xclbin,device=currentDevice)
 ## print("Link interface 0 {}; link interface 1 {}".format(ol.cmac_0.link_status(),ol.cmac_1.link_status()))
 print("Link interface 1 {}".format(ol.cmac_1.link_status()))
 
-print(ol.networklayer_1.set_ip_address('10.1.212.190', debug=True)) ## own ip address
+print(ol.networklayer_1.set_ip_address('192.168.0.201', debug=True)) ## own ip address
 
-ol.networklayer_1.sockets[3] = ('10.1.212.199', 62177, 60512, True)
+ol.networklayer_1.sockets[3] = ('192.168.0.202', 62177, 60512, True)
 ol.networklayer_1.populate_socket_table()
 print(ol.networklayer_1.get_socket_table())
-ol.networklayer_1.arp_discovery()
+
+arp_ready = False
+while (arp_ready == False):
+    print("arp table is not ready ! ")
+    ol.networklayer_1.arp_discovery()
+    arp_table = ol.networklayer_1.get_arp_table()
+    if arp_table.get(202) != None: ## find target FPGA MAC address
+        arp_ready = True
+    else:
+        print(arp_table)
+        time.sleep(5)
+
+print("find arp table ---- ")
 print(ol.networklayer_1.get_arp_table())
 
 

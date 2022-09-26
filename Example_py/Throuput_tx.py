@@ -7,6 +7,7 @@ from _thread import *
 import threading 
 import socket
 from vnx_utils import *
+import time
 
 
 for i in range(len(pynq.Device.devices)):
@@ -21,15 +22,26 @@ ol = pynq.Overlay(xclbin,device=currentDevice)
 ## print("Link interface 0 {}; link interface 1 {}".format(ol.cmac_0.link_status(),ol.cmac_1.link_status()))
 print("Link interface 1 {}".format(ol.cmac_1.link_status()))
 
-print(ol.networklayer_1.set_ip_address('10.1.212.199', debug=True)) ## own ip address
+print(ol.networklayer_1.set_ip_address('192.168.0.202', debug=True)) ## own ip address
 
-ol.networklayer_1.sockets[12] = ('10.1.212.190', 60512, 62177, True)
+ol.networklayer_1.sockets[12] = ('192.168.0.201', 60512, 62177, True)
 ol.networklayer_1.populate_socket_table()
 print(ol.networklayer_1.get_socket_table())
-ol.networklayer_1.arp_discovery()
-print(ol.networklayer_1.get_arp_table())
 
-import time
+arp_ready = False
+while (arp_ready == False):
+    print("arp table is not ready ! ")
+    ol.networklayer_1.arp_discovery()
+    arp_table = ol.networklayer_1.get_arp_table()
+    if arp_table.get(201) != None: ## find target FPGA MAC address
+        arp_ready = True
+    else:
+        print(arp_table)
+        time.sleep(5)
+
+print("find arp table ---- ")
+print(ol.networklayer_1.get_arp_table())
+time.sleep(5)
 
 freq = int(ol.clock_dict['clock0']['frequency'])
 ol_tg = ol.traffic_generator_1_3

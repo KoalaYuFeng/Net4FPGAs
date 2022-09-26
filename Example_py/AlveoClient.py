@@ -15,7 +15,7 @@ currentDevice = pynq.Device.devices[0]
 xclbin = '../basic.intf1.xilinx_u250_gen3x16_xdma_3_1_202020_1/vnx_basic_if1.xclbin'
 ol = pynq.Overlay(xclbin,device=currentDevice)
 
-print(ol.ip_dict)
+## print(ol.ip_dict)
 
 ## print("Link interface 0 {}; link interface 1 {}".format(ol.cmac_0.link_status(),ol.cmac_1.link_status()))
 print("Link interface 1 {}".format(ol.cmac_1.link_status()))
