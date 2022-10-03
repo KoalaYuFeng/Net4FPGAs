@@ -31,6 +31,8 @@ private:
 public:
     AlveoVnxKrnlS2MM(const FpgaDevice &device, uint32_t inst_id);
 
+    int resetBuffer();
+
     int transferDataToHost(char *data);
 
     int receivePacket(size_t size);

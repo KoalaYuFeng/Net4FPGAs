@@ -22,5 +22,6 @@ class AlveoVnxCmac : public FpgaIP {
 
 public:
     AlveoVnxCmac(const FpgaDevice &device, uint32_t inst_id);
-
+    int AlveoVnxCmacReset();
+    uint32_t getCmacPackets();
 };

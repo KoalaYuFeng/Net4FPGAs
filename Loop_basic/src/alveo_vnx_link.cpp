@@ -1,6 +1,9 @@
 // Copyright (C) FPGA-FAIS at Jagiellonian University Cracow
 //
 // SPDX-License-Identifier: BSD-3-Clause
+//
+// modified by yufeng@nus.edu.sg.
+// add link status check function.
 
 
 #include "alveo_vnx_link.h"
@@ -35,6 +38,16 @@ AlveoVnxLink::~AlveoVnxLink() {
 
 
 /**
+* AlveoVnxLink::getLinkStatus()
+* return True or False.
+*/
+bool AlveoVnxLink::getLinkStatus() {
+    uint32_t status = this->cmac->readRegister("stat_rx_status");
+    return (status & 0x1); // status is the last bit.
+}
+
+
+/**
 * AlveoVnxLink::setMyAddresses() - configures VnxNetworkLayer with supplied addresses
 *
 * @param ip_address
@@ -53,25 +66,50 @@ int AlveoVnxLink::setMyAddresses(const std::string &ip_address, const std::strin
     char dot;
     std::stringstream ss_ip(ip_address);
     ss_ip >> a >> dot >> b >> dot >> c >> dot >> d;
+    std::cout <<' '<< a <<' '<< b <<' '<< c <<' '<< d  <<std::endl;
     uint32_t ip_hex = (a << 24) | (b << 16) | (c << 8) | d;
 
     this->ip = ip_hex;
-
     this->nl->writeRegister("my_ip", ip_hex);
+    uint32_t ip_add = this->nl->readRegister("my_ip");
+    std::cout << std::hex <<"ip_addr is "<< ip_add <<std::endl;
 
     // conert MAC address string into 48b hex
     std::stringstream ss_mac(mac_address);
-    ss_mac >> a >> dot >> b >> dot >> c >> dot >> d >> dot >> e >> dot >> f;
-    uint64_t mac_hex = (a << 40) | (b << 32) | (c << 24) | (d << 16) | (e << 8) | f;
+    std::cout<<"mac_adress "<< mac_address <<std::endl;
+    std::string t = mac_address;
+    std::string mac_temp = t.replace(2,1,"");
+    mac_temp = t.replace(4,1,"");
+    mac_temp = t.replace(6,1,"");
+    mac_temp = t.replace(8,1,"");
+    mac_temp = t.replace(10,1,"");
+    std::cout << "mac_temp" <<mac_temp<<std::endl; // 000a35029dc9;
+    uint64_t hex_mac = 0;
+    for (int i = 0; i < 12; i++) {
+        char temp = mac_temp.at(i);
+        if ((temp <= 'f') && (temp >= 'a')) hex_mac += ((temp - 'a' + 10UL) << (11 - i)*4);
+        if ((temp <= 'F') && (temp >= 'A')) hex_mac += ((temp - 'A' + 10UL) << (11 - i)*4);
+        if ((temp <= '9') && (temp >= '0')) hex_mac += ((temp - '0' +  0UL) << (11 - i)*4);
+    }
+    // ss_mac >> a >> dot >> b >> dot >> c >> dot >> d >> dot >> e >> dot >> f;
+    // std::cout <<' '<< a <<' '<< b <<' '<< c <<' '<< d  <<' '<< e <<' '<< f <<' '<<std::endl;
+    // uint64_t hex_mac = (a << 40) | (b << 32) | (c << 24) | (d << 16) | (e << 8) | f;
 
-    this->mac = mac_hex;
+    this->mac = hex_mac;
+    std::cout<<"mac addr is "<<this->mac<<std::endl;
 
-    this->nl->writeRegister("my_mac_msb", static_cast<uint32_t>(mac_hex >> 32));
-    this->nl->writeRegister("my_mac_lsb", static_cast<uint32_t>(mac_hex & 0xffffffff));
+    this->nl->writeRegister("my_mac_msb", static_cast<uint32_t>((hex_mac >> 32)& 0x0000ffff)); //add a mask
+    this->nl->writeRegister("my_mac_lsb", static_cast<uint32_t>(hex_mac & 0xffffffff));
+    std::cout <<" my_msb is "<< static_cast<uint32_t>(hex_mac >> 32) << \
+                " my lsb is "<< static_cast<uint32_t>(hex_mac & 0xffffffff) <<std::endl;
+
+    uint32_t mac_msb = this->nl->readRegister("my_mac_msb");
+    uint32_t mac_lsb = this->nl->readRegister("my_mac_lsb");
+    std::cout << "mac_msb is "<< mac_msb << " mac_lsb is "<< mac_lsb <<std::endl;
 
     // assign UDP port
     this->udp = udp_port;
-
+    std::cout << std::dec << this->udp << std::endl;
     return 0;
 }
 
@@ -95,56 +133,65 @@ int AlveoVnxLink::setMyAddresses(const std::string &ip_address, const std::strin
 int AlveoVnxLink::sendTo(const std::string &dest_ip, uint16_t dest_udp, char *buffer, size_t size) {
 
     this->nl->setSocket(dest_ip, dest_udp, this->udp, 0);
+    this->nl->getSocketTable();
 
-    this->nl->runARPDiscovery();
+    // In basic ip, tx need to check the right arp table before transfer data.
+    bool ARP_ready = false;
+    while(!ARP_ready) {
+        std::cout << "wait ARP ready!" << std::endl;
+        this->nl->runARPDiscovery();
+        usleep(500000);
+        ARP_ready = this->nl->IsARPTableFound(dest_ip);
+    }
+    sleep(2);
 
     // transfer the data from the buffer
     // fragment into MAX_UDP_BUFFER_SIZE packets when needed
     // add an additional data word in front of the buffer with EOF and size
 
-    uint32_t header;
-    char *pkt_buffer = new char[MAX_UDP_BUFFER_SIZE + 4];
-    size_t size_left = size;
-    size_t size_to_transfer = 0;
-    size_t total_transferred_size = 0;
+    this->tx->transferDataToKrnl(buffer, SIZE_RX_BUFFER);
+    this->tx->sendPacket(0); // this is the socket table index, to index = 0;
+    std::cout << "l0 packet sent" << std::endl;
 
-    for (int i = 0; size_left > 0; i++) {
+    // uint32_t header;
+    // char *pkt_buffer = new char[MAX_UDP_BUFFER_SIZE + 4];
+    // size_t size_left = size;
+    // size_t size_to_transfer = 0;
+    // size_t total_transferred_size = 0;
 
-        // EOF marker bit on MSB
-        header = (size_left <= MAX_UDP_BUFFER_SIZE) << 31;
+    // for (int i = 0; size_left > 0; i++) {
+    //     // EOF marker bit on MSB
+    //     header = (size_left <= MAX_UDP_BUFFER_SIZE) << 31;
 
-        if (size_left <= MAX_UDP_BUFFER_SIZE) {
-            size_to_transfer = size_left;
-            size_left -= size_left;
-            std::cout<<"size <= UDP_size"<<size_to_transfer<<std::endl;
-        } else {
-            size_to_transfer = MAX_UDP_BUFFER_SIZE;
-            size_left -= MAX_UDP_BUFFER_SIZE;
-            std::cout<<"size > UDP_size"<<size_to_transfer<<std::endl;
-        }
+    //     if (size_left <= MAX_UDP_BUFFER_SIZE) {
+    //         size_to_transfer = size_left;
+    //         size_left -= size_left;
+    //         std::cout<<"size <= UDP_size"<<size_to_transfer<<std::endl;
+    //     } else {
+    //         size_to_transfer = MAX_UDP_BUFFER_SIZE;
+    //         size_left -= MAX_UDP_BUFFER_SIZE;
+    //         std::cout<<"size > UDP_size"<<size_to_transfer<<std::endl;
+    //     }
 
-        // payload size
-        header = header | size_to_transfer;
-        std::cout << "l0 header " << std::hex << header << std::dec << std::endl;
+    //     // payload size
+    //     header = header | size_to_transfer;
+    //     std::cout << "l0 header " << std::hex << header << std::dec << std::endl;
 
-        *(uint32_t *) pkt_buffer = header;
-        memcpy(pkt_buffer + 4, buffer + total_transferred_size, size_to_transfer);
+    //     *(uint32_t *) pkt_buffer = header;
+    //     memcpy(pkt_buffer + 4, buffer + total_transferred_size, size_to_transfer);
 
-        total_transferred_size += size_to_transfer;
+    //     total_transferred_size += size_to_transfer;
 
-        this->tx->transferDataToKrnl(pkt_buffer, size_to_transfer + 4);
-        std::cout << "l0 data transfered " << size_to_transfer << " bytes" << std::endl;
-        std::cout << "l0 size left: " << size_left << " total_transferred_size " << total_transferred_size << std::endl;
+    //     this->tx->transferDataToKrnl(pkt_buffer, size_to_transfer + 4);
+    //     std::cout << "l0 data transfered " << size_to_transfer << " bytes" << std::endl;
+    //     std::cout << "l0 size left: " << size_left << " total_transferred_size " << total_transferred_size << std::endl;
 
-        this->tx->sendPacket(0);
-        std::cout << "l0 packet sent" << std::endl;
+    //     this->tx->sendPacket(0); // this is the socket table index, to index = 0;
+    //     std::cout << "l0 packet sent" << std::endl;
 
-        usleep(1000);
-
-    }
-
-    delete[] pkt_buffer;
-
+    //     usleep(200000); // need to consider the latency of RX side. Carefully!
+    // }
+    // delete[] pkt_buffer;
     return 0;
 }
 
@@ -164,40 +211,45 @@ int AlveoVnxLink::sendTo(const std::string &dest_ip, uint16_t dest_udp, char *bu
 int AlveoVnxLink::receive(const std::string &src_ip, uint16_t src_udp, char *buffer) {
 
     this->nl->setSocket(src_ip, src_udp, this->udp, 0);
-
-    this->nl->runARPDiscovery();
-
-    char *pkt_buffer = new char[MAX_UDP_BUFFER_SIZE + 4];
-    size_t rx_size = 0;
-
-    // loop for receiveing packets until EOF is recognized
-    // allows to perform full transactions with payload larger that single UDP
-    // no further verification is performed
-    // pottenially could lead to packet mixing
-    while (true) {
-        this->rx->receivePacket(MAX_UDP_BUFFER_SIZE + 4);
-        this->rx->transferDataToHost(pkt_buffer);
-
-        uint32_t header = *(uint32_t *) pkt_buffer;
-
-        bool eof = header >> 31;
-        size_t pkt_size = (header & 0xffffff);
-
-        std::cout << "received header " << std::hex << header << std::dec << " eof: " << eof << " pkt_size " << pkt_size << " rx_size " << rx_size
-                  << std::endl;
-
-        memcpy(buffer + rx_size, pkt_buffer + 4, pkt_size);
-
-        rx_size += pkt_size;
-
-        if (eof) {
-            break;
-        }
+    // this->nl->setSocket("192.168.0.142", 8065, this->udp, 1);  // for test
+    this->nl->getSocketTable();
+    bool ARP_ready = false;
+    while(!ARP_ready) {
+        std::cout << "wait ARP ready!" << std::endl;
+        this->nl->runARPDiscovery();
+        usleep(500000);
+        ARP_ready = this->nl->IsARPTableFound(src_ip);
     }
 
-    delete[] pkt_buffer;
+    this->rx->receivePacket(SIZE_RX_BUFFER);
+    this->rx->transferDataToHost(buffer);
 
-    return rx_size;
+
+    // char *pkt_buffer = new char[MAX_UDP_BUFFER_SIZE + 4];
+    // size_t rx_size = 0;
+
+    // // loop for receiveing packets until EOF is recognized
+    // // allows to perform full transactions with payload larger that single UDP
+    // // no further verification is performed
+    // // pottenially could lead to packet mixing
+    // while (true) {
+    //     this->rx->receivePacket(MAX_UDP_BUFFER_SIZE + 4);
+    //     this->rx->transferDataToHost(pkt_buffer);
+
+    //     uint32_t header = *(uint32_t *) pkt_buffer;
+    //     bool eof = header >> 31;
+    //     size_t pkt_size = (header & 0xffffff);
+    //     std::cout << "received header " << std::hex << header << std::dec << " eof: " << eof << " pkt_size " << pkt_size << " rx_size " << rx_size
+    //               << std::endl;
+    //     memcpy(buffer + rx_size, pkt_buffer + 4, pkt_size);
+    //     rx_size += pkt_size;
+    //     if (eof) {
+    //         break;
+    //     }
+    // }
+    // delete[] pkt_buffer;
+    // return rx_size;
+    return SIZE_RX_BUFFER;
 }
 
 /**

@@ -1,4 +1,4 @@
-// Enable tx and rx.
+// Enable tx file. over 64 Kbytes.
 
 #include <iostream>
 #include <fstream>
@@ -12,10 +12,10 @@
 int main(int argc, char *argv[]) {
 
     std::string xclbin;
-    int alveo_id = 0; // set alveo_id = 0;
+    int our_id, their_id;
 
-    if (argc != 2) {
-        std::cout << "Usage: ./basic <xclbin_file>" << std::endl;
+    if (argc != 4) {
+        std::cout << "Usage: ./basic <xclbin_file> <our fpga_id> <their fpga_id>" << std::endl;
         return EXIT_FAILURE;
     }
     else {
@@ -25,24 +25,37 @@ int main(int argc, char *argv[]) {
             return EXIT_FAILURE;
         }
         f.close();
-        xclbin = std::string(argv[1]);            
-
+        xclbin = std::string(argv[1]);
+        our_id = atoi(argv[2]); // get our fpga id, for configure
+        their_id = atoi(argv[3]); // need to get another fpga id
     }
 
-    auto u250 = FpgaDevice(alveo_id);
-
+    auto u250 = FpgaDevice(0); // in VM, each host has one fpga U250.
     std::cout << "Device created: " << u250.getName()<<std::endl;
-
     auto uuid = u250.loadBitfile(xclbin);
     std::cout << "Bitfile loaded " << uuid << std::endl;
 
+    auto l1 = AlveoVnxLink(u250, 1); // 1 for interface 1.
     // read cmac link status;
-    
-    
-    auto l1 = AlveoVnxLink(u250, 1);
-    l1.setMyAddresses("192.168.0.1", "ab:cd:ef:01:01", 10000);
+    bool linkStatus = l1.getLinkStatus();
+    while(!linkStatus) {
+        sleep(1);
+        linkStatus = l1.getLinkStatus();
+    }
+    std::cout<<"link status up"<<std::endl;
 
-    std::cout << "link basic created" << std::endl;
+    // get FPGA configuration.
+    std::string our_ip = FPGA_config[our_id]["ip_addr"];
+    std::string our_port = FPGA_config[our_id]["port"];
+    std::string our_idx = FPGA_config[our_id]["idx"];
+    std::cout << "our fpga config" << our_ip << our_port << our_idx << std::endl;
+
+    std::string their_ip = FPGA_config[their_id]["ip_addr"];
+    std::string their_port = FPGA_config[their_id]["port"];
+    std::string their_idx = FPGA_config[their_id]["idx"];
+    std::cout << "their fpga config" << their_ip << their_port << their_idx << std::endl;
+
+    l1.setMyAddresses(our_ip, "ab:cd:ef:01:01", stoi(our_port));
 
     // enable tx and rx, need to enable rx firstly then tx.
     char *tx_buf = new char[SIZE_TX_DATA];
@@ -53,7 +66,9 @@ int main(int argc, char *argv[]) {
     
     char *rx_buf = new char[SIZE_RX_BUFFER];
 
-    size_t size = l1.basicRecvSend("192.168.0.2", 10001, tx_buf, rx_buf, SIZE_TX_DATA);
+    size_t size = l1.receive(their_ip, stoi(their_port), rx_buf);
+
+    // size_t size = l1.basicRecvSend("192.168.0.202", 62177, tx_buf, rx_buf, SIZE_TX_DATA);
 
     std::cout << "Packet received " << size << " bytes" << std::endl;
 

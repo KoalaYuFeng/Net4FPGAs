@@ -29,6 +29,10 @@ public:
 
     int runARPDiscovery();
 
-    int printARPStatus();
+    bool IsARPTableFound(const std::string &dest_ip);
+
+    int getSocketTable();
+
+    int invalidSocketTable();
 
 };

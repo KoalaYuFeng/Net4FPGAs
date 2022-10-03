@@ -29,6 +29,12 @@ target_link_libraries(basic PRIVATE alveo_vnx)
 add_executable(loop exec/alveo_loop.cpp)
 target_link_libraries(loop PRIVATE alveo_vnx)
 
+add_executable(tx exec/alveo_tx.cpp)
+target_link_libraries(tx PRIVATE alveo_vnx)
+
+add_executable(rx exec/alveo_rx.cpp)
+target_link_libraries(rx PRIVATE alveo_vnx)
+
 #____________________________________________________________
 
 file(GLOB ALL_SOURCES "src/*.cpp")
@@ -56,6 +62,8 @@ message(STATUS "XRT Version: ${XRT_VERSION}")
 
 target_compile_definitions(basic PRIVATE "ALVEO_DEVICE=\"${ALVEO_DEVICE}\"")
 target_compile_definitions(loop PRIVATE "ALVEO_DEVICE=\"${ALVEO_DEVICE}\"")
+target_compile_definitions(rx PRIVATE "ALVEO_DEVICE=\"${ALVEO_DEVICE}\"")
+target_compile_definitions(tx PRIVATE "ALVEO_DEVICE=\"${ALVEO_DEVICE}\"")
 
 if ( ${XRT_VERSION} VERSION_GREATER_EQUAL 2.12.0)
     target_compile_definitions(alveo_vnx PUBLIC "INFO_PLATFORM")

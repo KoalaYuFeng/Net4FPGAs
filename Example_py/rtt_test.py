@@ -31,13 +31,14 @@ def rtt_tx (id_our, id_their) :
 
     ## print(ol.ip_dict)
 
+    ## check link status
     while (ol.cmac_1.link_status() == False):
         print("Link interface 1 {}".format(ol.cmac_1.link_status()))
         time.sleep(1)
 
     print(ol.networklayer_1.set_ip_address(ip_our, debug=True)) ## own ip address
 
-    ol.networklayer_1.sockets[2] = (ip_their, port_their, port_our, True)
+    ol.networklayer_1.sockets[2] = (ip_their, port_their, port_our, True) ## set socket
     ol.networklayer_1.populate_socket_table()
     print(ol.networklayer_1.get_socket_table())
 
@@ -53,12 +54,15 @@ def rtt_tx (id_our, id_their) :
 
     print("find arp table ---- ")
     print(ol.networklayer_1.get_arp_table())
-    time.sleep(2)
+    time.sleep(1)
 
     send_packets   = 2 ** 20
     shape          = (send_packets,1)
     rtt_cycles     = pynq.allocate(shape, dtype=np.uint32, target=ol.bank1)
     pkt            = pynq.allocate(1, dtype=np.uint32, target=ol.bank1)
+
+    for i in range (send_packets):
+        rtt_cycles[i] = 0  ## clean the array data
 
     collector_h = ol.collector_1_2.start(rtt_cycles, pkt)
 
@@ -66,11 +70,10 @@ def rtt_tx (id_our, id_their) :
     ol_tg = ol.traffic_generator_1_2
     ol_tg.reset_stats()
     ol.networklayer_1.reset_debug_stats()
+    ol_tg.start(TgMode.LATENCY, 2, send_pkts, 1, 50) ## mode + socket + packet + interval(cycle)
 
-    ol_tg.start(TgMode.LATENCY, 2, send_pkts, 1, 50)
-
-    rtt_cycles.sync_from_device()
-    print(rtt_cycles)
+    time.sleep(2) ## need sync the operation. very important
+    rtt_cycles.sync_from_device() ## this only sync data.
 
     freq = int(ol.clock_dict['clock0']['frequency'])
     rtt_usec = np.array(shape, dtype=np.float64)
@@ -107,7 +110,6 @@ def rtt_rx (id_our, id_their):
         print("Link interface 1 {}".format(ol.cmac_1.link_status()))
         time.sleep(1)
 
-
     print(ol.networklayer_1.set_ip_address(ip_our, debug=True)) ## own ip address
 
     ol.networklayer_1.sockets[0] = (ip_their, port_their, port_our, True)
@@ -128,11 +130,9 @@ def rtt_rx (id_our, id_their):
     print(ol.networklayer_1.get_arp_table())
 
     ol_tg = ol.traffic_generator_1_0
-
     ol_tg.start(TgMode.LOOPBACK, 0)# Use connection in position 0 to reflect
 
-    time.sleep(30) ## to keep program running, until tx loop finish.
-    print("program exit")
+    print("Loopback kernel is working ")
 
     pynq.Overlay.free(ol)
 

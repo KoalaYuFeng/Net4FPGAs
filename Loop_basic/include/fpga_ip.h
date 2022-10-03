@@ -39,5 +39,6 @@ public:
     int writeRegisterAddr(uint32_t reg_addr, uint32_t value);
 
     uint32_t readRegister(const std::string &reg);
+    uint32_t readRegister_offset(const std::string &reg, int offset);
 
 };

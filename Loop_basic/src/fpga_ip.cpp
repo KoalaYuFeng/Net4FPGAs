@@ -88,3 +88,17 @@ uint32_t FpgaIP::readRegister(const std::string &reg) {
         return this->ip.read_register(this->registers_map[reg]);
     }
 }
+
+/*
+* need to override for offset;
+*/
+
+uint32_t FpgaIP::readRegister_offset(const std::string &reg, int offset) {
+
+    if (this->registers_map.find(reg) == this->registers_map.end()) {
+        std::cerr << "ERR: FpgaIP: register " << reg << " not found in the registers map" << std::endl;
+        return EINVAL;
+    } else {
+        return this->ip.read_register(this->registers_map[reg] + offset);
+    }
+}

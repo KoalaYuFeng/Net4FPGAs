@@ -61,6 +61,7 @@ int AlveoVnxLoop::setMyAddresses(const std::string &ip_address, const std::strin
 int AlveoVnxLoop::kernelLoop(const std::string &remote_ip, uint16_t port) {
     this->nl->setSocket(remote_ip, port, this->udp, 0); // set dest as 0
     this->nl->runARPDiscovery();
+    // this->nl->IsARPTableFound(); // add print ARp table function.
     // ARP discovery may takes time. // print it;
     this->loop->RunLoop();
     return 0;

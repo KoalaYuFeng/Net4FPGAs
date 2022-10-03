@@ -24,6 +24,10 @@ AlveoVnxKrnlS2MM::AlveoVnxKrnlS2MM(const FpgaDevice &device, uint32_t inst_id) :
 
 }
 
+int AlveoVnxKrnlS2MM::resetBuffer() {
+    return 0;
+}
+
 /**
 * AlveoVnxKrnlS2MM::transferDataToHost() - transfers size amount of bytes to data pointer
 *
@@ -33,11 +37,8 @@ AlveoVnxKrnlS2MM::AlveoVnxKrnlS2MM(const FpgaDevice &device, uint32_t inst_id) :
 *  0: OK, 
 */
 int AlveoVnxKrnlS2MM::transferDataToHost(char *data) {
-
-    xrt_buffer.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
-
-    xrt_buffer.read(data);
-
+    this->xrt_buffer.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
+    this->xrt_buffer.read(data);
     return 0;
 }
 

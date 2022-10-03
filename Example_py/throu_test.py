@@ -34,7 +34,6 @@ def throu_rx (id_our, id_their):
 
     ## print("Link interface 0 {}; link interface 1 {}".format(ol.cmac_0.link_status(),ol.cmac_1.link_status()))
     print("Link interface 1 {}".format(ol.cmac_1.link_status()))
-
     print(ol.networklayer_1.set_ip_address(ip_our, debug=True)) ## own ip address
 
     ol.networklayer_1.sockets[3] = (ip_their, port_their, port_our, True)
@@ -102,7 +101,6 @@ def throu_tx (id_our, id_their):
     ol = pynq.Overlay(xclbin,device=currentDevice)
 
     ## print(ol.ip_dict)
-
     ## print("Link interface 0 {}; link interface 1 {}".format(ol.cmac_0.link_status(),ol.cmac_1.link_status()))
     print("Link interface 1 {}".format(ol.cmac_1.link_status()))
 
