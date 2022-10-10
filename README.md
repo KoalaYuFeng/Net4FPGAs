@@ -1,6 +1,15 @@
 # Net4FPGAs
 
-### This project aims to achieve network communication between multi FPGAs. At current stage, two U250 are used for data transcation, one for tx, another for rx. Both U250 board are configured using interface 1. The project contains python version and C++ version.
+### This project aims to provide network communication function between multi FPGAs. 
+<br />
+
+## Main Features
+* Four U250 boards are used. Two in point-to-point, two in switch.
+* All the board use interface 1.
+* For experiment. The project contains python version and C++ version.
+* For performance, we test Round-Trip-Time and Throughput, RRT = 1.07us for point-to-point; 1.71 us for switch connection; Max Throughput = 95.5 Gbps.
+
+<br />
 
 ## Generate XCLBIN
 
@@ -23,8 +32,8 @@ make all DEVICE=/opt/xilinx/platforms/xilinx_u250_gen3x16_xdma_3_1_202020_1/xili
 ```
 
 ## Run Network basic function
-* For python version, go to folder Example_py/
-* For C++ version, go to folder Example_c/
+* For python version, go to folder Rtt_throu_py/
+* For C++ version, go to folder Loop_basic_c/
 
 ## Reference
 https://github.com/Xilinx/xup_vitis_network_example

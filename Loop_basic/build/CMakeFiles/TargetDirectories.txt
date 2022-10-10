@@ -1,7 +1,0 @@
-/home/yufeng/Net4FPGAs/Loop_basic/build/CMakeFiles/rebuild_cache.dir
-/home/yufeng/Net4FPGAs/Loop_basic/build/CMakeFiles/edit_cache.dir
-/home/yufeng/Net4FPGAs/Loop_basic/build/CMakeFiles/alveo_vnx.dir
-/home/yufeng/Net4FPGAs/Loop_basic/build/CMakeFiles/rx.dir
-/home/yufeng/Net4FPGAs/Loop_basic/build/CMakeFiles/tx.dir
-/home/yufeng/Net4FPGAs/Loop_basic/build/CMakeFiles/loop.dir
-/home/yufeng/Net4FPGAs/Loop_basic/build/CMakeFiles/basic.dir

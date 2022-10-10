@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/loop.dir/exec/alveo_loop.cpp.o  -o bin/loop   -L/home/opt/xilinx/xrt/lib  -Wl,-rpath,/home/opt/xilinx/xrt/lib:/home/yufeng/Net4FPGAs/Loop_basic/build/lib lib/libalveo_vnx.so -lxrt_coreutil -luuid 
