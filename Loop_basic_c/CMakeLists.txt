@@ -35,6 +35,12 @@ target_link_libraries(tx PRIVATE alveo_vnx)
 add_executable(rx exec/alveo_rx.cpp)
 target_link_libraries(rx PRIVATE alveo_vnx)
 
+add_executable(u250_tx exec/u250_tx.cpp)
+target_link_libraries(u250_tx PRIVATE alveo_vnx)
+
+add_executable(u250_rx exec/u250_rx.cpp)
+target_link_libraries(u250_rx PRIVATE alveo_vnx)
+
 #____________________________________________________________
 
 file(GLOB ALL_SOURCES "src/*.cpp")
@@ -64,6 +70,8 @@ target_compile_definitions(round PRIVATE "ALVEO_DEVICE=\"${ALVEO_DEVICE}\"")
 target_compile_definitions(loop PRIVATE "ALVEO_DEVICE=\"${ALVEO_DEVICE}\"")
 target_compile_definitions(rx PRIVATE "ALVEO_DEVICE=\"${ALVEO_DEVICE}\"")
 target_compile_definitions(tx PRIVATE "ALVEO_DEVICE=\"${ALVEO_DEVICE}\"")
+target_compile_definitions(u250_rx PRIVATE "ALVEO_DEVICE=\"${ALVEO_DEVICE}\"")
+target_compile_definitions(u250_tx PRIVATE "ALVEO_DEVICE=\"${ALVEO_DEVICE}\"")
 
 if ( ${XRT_VERSION} VERSION_GREATER_EQUAL 2.12.0)
     target_compile_definitions(alveo_vnx PUBLIC "INFO_PLATFORM")

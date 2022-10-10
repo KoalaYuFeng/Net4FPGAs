@@ -219,10 +219,9 @@ int AlveoVnxLink::basicRecvSend(const std::string &remote_ip, uint16_t remote_ud
     }
     sleep(2); // wait until another FPGA is ready.
 
-    this->rx->launchKernel(SIZE_RX_BUFFER);
-    sleep(2); // need to wait rx launch down. since the launch operation is async.
-
+    this->rx->launchKernel(SIZE_RX_BUFFER); // need to wait rx launch down. since the launch operation is async.
     this->tx->transferDataToKrnl(tx_buffer, SIZE_RX_BUFFER);
+    sleep(5); // need to wait tx launch down 
     this->tx->sendPacket(0);
     std::cout << "tx packet sent" << std::endl;
 

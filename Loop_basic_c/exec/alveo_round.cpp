@@ -11,6 +11,7 @@
 
 #include "fpga_device.h"
 #include "alveo_vnx_link.h"
+#include "network.h"
 
 
 int main(int argc, char *argv[]) {

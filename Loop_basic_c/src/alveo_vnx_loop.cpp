@@ -127,9 +127,7 @@ int AlveoVnxKrnlLoop::RunLoop() {
     run.start();
     std::cout<<"start loop_back function, keeps running"<<std::endl;
     // keep the kernel running.
-    // run.wait();
-    sleep(1);
-
+    run.wait();
     return 0;
 }
 
