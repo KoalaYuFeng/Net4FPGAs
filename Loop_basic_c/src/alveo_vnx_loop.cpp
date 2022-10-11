@@ -127,7 +127,7 @@ int AlveoVnxKrnlLoop::RunLoop() {
     run.start();
     std::cout<<"start loop_back function, keeps running"<<std::endl;
     // keep the kernel running.
-    run.wait();
+    run.wait(1000); // run 1000 ms exit, FPGA still running.
     return 0;
 }
 

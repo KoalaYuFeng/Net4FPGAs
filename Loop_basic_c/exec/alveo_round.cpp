@@ -78,9 +78,17 @@ int main(int argc, char *argv[]) {
     // size_t size = l1.basicRecvSend("192.168.0.101", 5001, tx_buf, rx_buf, SIZE_RX_BUFFER);
 
     std::cout << "Packet received " << size << " bytes" << std::endl;
-    std::ofstream outfile("out.bin", std::ios::binary | std::ios::ate);
-    outfile.write(rx_buf, size);
-    outfile.close();
+
+    std::cout << "data verifying ... " << std::endl;
+    int count = 0;
+    for (int i = 0; i < SIZE_RX_BUFFER; i++) {
+        if (tx_buf[i] != rx_buf[i]) count++;
+    }
+    std::cout << count <<" data differ !"<< std::endl;
+    std::cout << "tx buf [0] :" << tx_buf[0] << " v.s. rx buf [0] :" << rx_buf[0] << std::endl;
+    // std::ofstream outfile("out.bin", std::ios::binary | std::ios::ate);
+    // outfile.write(rx_buf, size);
+    // outfile.close();
 
     return 0;
 }

@@ -136,6 +136,7 @@ int AlveoVnxLink::setMyAddresses(const std::string &ip_address, const std::strin
 int AlveoVnxLink::sendTo(const std::string &dest_ip, uint16_t dest_udp, char *buffer, size_t size) {
 
     this->nl->setSocket(dest_ip, dest_udp, this->udp, 0);
+    // this->nl->setSocket("192.168.0.101", 5001, this->udp, 1);
     this->nl->getSocketTable();
 
     // In basic ip, tx need to check the right arp table before transfer data.
@@ -202,12 +203,16 @@ int AlveoVnxLink::receive(const std::string &src_ip, uint16_t src_udp, char *buf
 *  size_t, size of the complete payload in bytes
 * @return
 *  int, total size of received transaction in bytes
+*
+* // at current stage, there still exist some problem when using switch tranfer a loop data, confusing. orz.
+* // it may caused by async operations in this loop. need to debug for it ..
 */
 
 int AlveoVnxLink::basicRecvSend(const std::string &remote_ip, uint16_t remote_udp, 
                                 char *tx_buffer, char *rx_buffer, size_t size) {
 
     this->nl->setSocket(remote_ip, remote_udp, this->udp, 0);
+    // this->nl->setSocket("192.168.0.101", 5001, this->udp, 1);
     this->nl->getSocketTable();
 
     bool ARP_ready = false;
@@ -217,15 +222,14 @@ int AlveoVnxLink::basicRecvSend(const std::string &remote_ip, uint16_t remote_ud
         usleep(500000);
         ARP_ready = this->nl->IsARPTableFound(remote_ip);
     }
-    sleep(2); // wait until another FPGA is ready.
 
+    sleep(2); // wait until another FPGA is ready.
     this->rx->launchKernel(SIZE_RX_BUFFER); // need to wait rx launch down. since the launch operation is async.
+    sleep(1);
     this->tx->transferDataToKrnl(tx_buffer, SIZE_RX_BUFFER);
-    sleep(5); // need to wait tx launch down 
     this->tx->sendPacket(0);
     std::cout << "tx packet sent" << std::endl;
-
-    this->rx->syncKernel(); // wait rx receive data
+    // this->rx->syncKernel(); // wait rx receive data
     this->rx->transferDataToHost(rx_buffer);
 
     return SIZE_RX_BUFFER;

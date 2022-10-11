@@ -83,7 +83,7 @@ int AlveoVnxKrnlS2MM::launchKernel(size_t size) {
 int AlveoVnxKrnlS2MM::syncKernel() {
     // wait until kernel finishes
     std::cout << "kernel waiting" << std::endl;
-    this->xrt_run.wait();
+    this->xrt_run.wait(); // wait 1000 ms
     return 0;
 }
 
