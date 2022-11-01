@@ -211,7 +211,8 @@ int AlveoVnxLink::receive(const std::string &src_ip, uint16_t src_udp, char *buf
 int AlveoVnxLink::basicRecvSend(const std::string &remote_ip, uint16_t remote_udp, 
                                 char *tx_buffer, char *rx_buffer, size_t size) {
 
-    this->nl->setSocket(remote_ip, remote_udp, this->udp, 0);
+    this->nl->setSocket(remote_ip, remote_udp, 5001, 0);
+    this->nl->setSocket(remote_ip, 5001, this->udp, 1);
     // this->nl->setSocket("192.168.0.101", 5001, this->udp, 1);
     this->nl->getSocketTable();
 
@@ -223,13 +224,13 @@ int AlveoVnxLink::basicRecvSend(const std::string &remote_ip, uint16_t remote_ud
         ARP_ready = this->nl->IsARPTableFound(remote_ip);
     }
 
-    sleep(2); // wait until another FPGA is ready.
+    // sleep(2); // wait until another FPGA is ready.
     this->rx->launchKernel(SIZE_RX_BUFFER); // need to wait rx launch down. since the launch operation is async.
     sleep(1);
     this->tx->transferDataToKrnl(tx_buffer, SIZE_RX_BUFFER);
-    this->tx->sendPacket(0);
+    this->tx->sendPacket(1);
     std::cout << "tx packet sent" << std::endl;
-    // this->rx->syncKernel(); // wait rx receive data
+    this->rx->syncKernel(); // wait rx receive data
     this->rx->transferDataToHost(rx_buffer);
 
     return SIZE_RX_BUFFER;

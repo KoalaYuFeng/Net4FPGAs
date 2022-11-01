@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     int our_id, their_id;
 
     if (argc != 4) {
-        std::cout << "Usage: ./tx <xclbin_file> <our fpga_id> <their fpga_id>" << std::endl;
+        std::cout << "Usage: ./u250_tx <xclbin_file> <our fpga_id> <their fpga_id>" << std::endl;
         return EXIT_FAILURE;
     }
     else {

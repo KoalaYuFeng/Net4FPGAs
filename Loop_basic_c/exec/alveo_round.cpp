@@ -4,6 +4,8 @@
 // -> set our ip -> arp discovery finish -> send data -> wait data come -> get data.
 // using basic xclbin.
 
+// in this case, receive data port is 5001 (default).
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -82,10 +84,12 @@ int main(int argc, char *argv[]) {
     std::cout << "data verifying ... " << std::endl;
     int count = 0;
     for (int i = 0; i < SIZE_RX_BUFFER; i++) {
-        if (tx_buf[i] != rx_buf[i]) count++;
+        if (tx_buf[i] != rx_buf[i]) {
+            count++;
+            std::cout << "tx buf ["<<i<<"] :" << tx_buf[i] << " v.s. " << rx_buf[i] << std::endl;
+        }
     }
     std::cout << count <<" data differ !"<< std::endl;
-    std::cout << "tx buf [0] :" << tx_buf[0] << " v.s. rx buf [0] :" << rx_buf[0] << std::endl;
     // std::ofstream outfile("out.bin", std::ios::binary | std::ios::ate);
     // outfile.write(rx_buf, size);
     // outfile.close();

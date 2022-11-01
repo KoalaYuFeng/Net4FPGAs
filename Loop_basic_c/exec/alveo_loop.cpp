@@ -4,6 +4,8 @@
 // -> set our ip -> arp discovery finish -> enable loop.
 // using loop xclbin.
 
+// in this case, receive data port is 5001 (default).
+
 #include <iostream>
 #include <fstream>
 #include <string>

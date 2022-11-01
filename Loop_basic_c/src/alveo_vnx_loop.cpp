@@ -96,7 +96,8 @@ int AlveoVnxLoop::setMyAddresses(const std::string &ip_address, const std::strin
 }
 
 int AlveoVnxLoop::kernelLoop(const std::string &remote_ip, uint16_t port) {
-    this->nl->setSocket(remote_ip, port, this->udp, 0); // set dest as 0
+    this->nl->setSocket(remote_ip, 5001, this->udp, 0); // set dest as 0
+    this->nl->setSocket(remote_ip, port, 5001, 1); // set dest as 0
     // this->nl->setSocket("192.168.0.101", 5001, this->udp, 1);
     this->nl->runARPDiscovery();
 
@@ -127,7 +128,7 @@ int AlveoVnxKrnlLoop::RunLoop() {
     run.start();
     std::cout<<"start loop_back function, keeps running"<<std::endl;
     // keep the kernel running.
-    run.wait(1000); // run 1000 ms exit, FPGA still running.
+    run.wait(); // run 1000 ms exit, FPGA still running.
     return 0;
 }
 
